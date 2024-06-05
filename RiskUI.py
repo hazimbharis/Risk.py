@@ -611,14 +611,14 @@ for x in range(player_count):
 
 
 
-game = Game(players, territories, simulating= True)
+game = Game(players, territories, simulating= False)
 win_counts = {}
 for player in game.stored_players:
     win_counts[player.id] = 0
 
 results = []
-for x in range(1, 20):
-    winner_id = game.play_game(game.stored_players, max_turns= 200)
+for x in range(1, 50):
+    winner_id = game.play_game(game.stored_players, max_turns= 300)
     
     print(f"Game {x}")
     if winner_id is not None:
