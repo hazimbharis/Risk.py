@@ -1,0 +1,3 @@
+Prototype Choosing Strategy:
+(If choosing a territory, pick terrorities in this order if available)
+ Aus -> NA -> SA -> AFR -> EU -> Asia

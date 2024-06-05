@@ -5,64 +5,63 @@ from typing import List, Tuple
 import random
 
 
-
 class Colour(Enum):
-    SEA = (0,255,255),
+    SEA = (0, 255, 255),
     WHITE = (255, 255, 255),
     BLACK = (0, 0, 0),
     RED = (200, 0, 0),
     BLUE = (0, 0, 255),
     GREEN = (0, 255, 0),
-    RUST = (210,150,75),
-    LIME = (180,255,100)
+    RUST = (210, 150, 75),
+    LIME = (180, 255, 100)
 
 
 ADJACENCY_LIST = {
-    
-    1: [43,3,5,4],
-    3: [14,6,5,1],
-    4: [43,1,5,7],
-    5: [1,3,6,7,8,4],
-    6: [3,5,8],
-    7: [8,5,4,9],
-    8: [5,6,7,9],
-    9: [7,8,10],
-    10: [9,11,12],
-    11: [10,12,13,21],
-    12: [10,11,13],
-    13: [11,12],
-    14: [3,15,16],
-    15: [14,16,17,20],
-    16: [14,15,17,18],
-    17: [16,15,20,19,18],
-    18: [16,17,19,21],
-    19: [17,18,20,21,22,35],
-    20: [15,17,19,27,31,35],
-    21: [18,19,22,23,24,11],
-    22: [19,21,35,23],
-    23: [21,22,35,24,25,26],
-    24: [21,23,25],
-    25: [24,23,26],
-    26: [23,25],
-    27: [20,31,37,28],
-    28: [27,37,33,32,29],
-    29: [28,32,30],
-    30: [29,32,34,43],
-    31: [27,37,36,35,20],
-    32: [29,30,34,33,28],
-    33: [28,32,34,37],
-    34: [33,32,30],
-    35: [31,36,22,23,19,20],
-    36: [35,38,37,31],
-    37: [38,36,33,31,27,28],
-    38: [37,36,39],
-    39: [40,41,38],
-    40: [39,41,42],
-    41: [39,42,40],
-    42: [41,40],
-    43: [30,1,4]
+    1: [43, 3, 5, 4],
+    3: [14, 6, 5, 1],
+    4: [43, 1, 5, 7],
+    5: [1, 3, 6, 7, 8, 4],
+    6: [3, 5, 8],
+    7: [8, 5, 4, 9],
+    8: [5, 6, 7, 9],
+    9: [7, 8, 10],
+    10: [9, 11, 12],
+    11: [10, 12, 13, 21],
+    12: [10, 11, 13],
+    13: [11, 12],
+    14: [3, 15, 16],
+    15: [14, 16, 17, 20],
+    16: [14, 15, 17, 18],
+    17: [16, 15, 20, 19, 18],
+    18: [16, 17, 19, 21],
+    19: [17, 18, 20, 21, 22, 35],
+    20: [15, 17, 19, 27, 31, 35],
+    21: [18, 19, 22, 23, 24, 11],
+    22: [19, 21, 35, 23],
+    23: [21, 22, 35, 24, 25, 26],
+    24: [21, 23, 25],
+    25: [24, 23, 26],
+    26: [23, 25],
+    27: [20, 31, 37, 28],
+    28: [27, 37, 33, 32, 29],
+    29: [28, 32, 30],
+    30: [29, 32, 34, 43],
+    31: [27, 37, 36, 35, 20],
+    32: [29, 30, 34, 33, 28],
+    33: [28, 32, 34, 37],
+    34: [33, 32, 30],
+    35: [31, 36, 22, 23, 19, 20],
+    36: [35, 38, 37, 31],
+    37: [38, 36, 33, 31, 27, 28],
+    38: [37, 36, 39],
+    39: [40, 41, 38],
+    40: [39, 41, 42],
+    41: [39, 42, 40],
+    42: [41, 40],
+    43: [30, 1, 4]
 }
-    
+
+
 class Region(Enum):
     NORTH_AMERICA = frozenset({1, 3, 4, 5, 6, 7, 8, 9, 43})
     SOUTH_AMERICA = frozenset({10, 11, 12, 13})
@@ -70,6 +69,7 @@ class Region(Enum):
     AFRICA = frozenset({21, 22, 23, 24, 25, 26})
     ASIA = frozenset({27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38})
     AUSTRALIA = frozenset({39, 40, 41, 42})
+
 
 REGION_BONUSES = {
     Region.NORTH_AMERICA: 5,
@@ -81,9 +81,8 @@ REGION_BONUSES = {
 }
 
 
-
 class Player():
-    def __init__(self, id : int, unassigned_units : int):
+    def __init__(self, id: int, unassigned_units: int):
         self.id = id
         self.personal_territories = {}
         self.base_unassigned = unassigned_units
@@ -104,20 +103,23 @@ class Player():
         self.personal_territories = {}
         self.cards = [0, 0, 0]
         self.unassigned_units = self.base_unassigned
-        
 
     def get_colour(self) -> tuple:
         player_colour_dict = {
-            0 : Colour.RED,
-            1 : Colour.BLUE,
-            2 : Colour.GREEN,
-            3 : Colour.RUST,
-            4 : Colour.LIME
+            0: Colour.RED,
+            1: Colour.BLUE,
+            2: Colour.GREEN,
+            3: Colour.RUST,
+            4: Colour.LIME
         }
-        return(player_colour_dict[self.id].value)
-    
-    def give_player_territory(self, territory : 'Territory', num_units : int) -> None:
-        if num_units>0:
+        return (player_colour_dict[self.id].value)
+
+    def give_player_territory(
+            self,
+            territory: 'Territory',
+            num_units: int
+    ) -> None:
+        if num_units > 0:
 
             self.personal_territories[territory.id] = territory
             territory.owner = self
@@ -129,11 +131,11 @@ class Player():
     def remove_player_territory(self, territory: 'Territory') -> None:
         del self.personal_territories[territory.id]
         return None
-    
+
     def give_player_units(self, number_of_units: int, ) -> None:
         if number_of_units > 0:
             self.unassigned_units += number_of_units
-            
+
         return None
     
     def get_card_set(self) -> int:
@@ -173,6 +175,7 @@ class Player():
 
         total_units = self.unassigned_units + sum(territory.troop_count for territory in self.personal_territories.values())
 
+
         if total_units + reinforcement_count >= unit_cap:
             reinforcement_count = 0
 
@@ -192,10 +195,10 @@ class Player():
         if number_of_units > 0:
             self.unassigned_units -= number_of_units
         return None
-    
+
     def reset_player_units(self):
         self.unassigned_units = 0
-        
+
     def owns_all_territories_in_region(self, region):
         return region.value.issubset(self.personal_territories)
 
@@ -207,16 +210,15 @@ class Player():
         self.cards[index] += 1
         
 
-    
-    #Abstract
+    # Abstract
     def get_player_name(self):
-        return(self.id)
+        return (self.id)
 
-    #Abstract
+    # Abstract
     def make_selection(self, available_territories: List['Territory']) -> 'Territory':
         pass
 
-    #Abstract Define yourself
+    # Abstract Define yourself
     def add_infantry(self) -> 'Territory':
         pass
 
@@ -224,15 +226,13 @@ class Player():
     def reinforce(self, total_reinforcements : int ) -> List[Tuple['Territory', int]]:
         pass
 
-    #Abstract
+    # Abstract
     def invade(self, adjacent_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
         pass
-    
-    #Abstract
+
+    # Abstract
     def manoeuvre(self, manoeuverable_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
         pass
-    
-    
 
 
 class RandomAgent(Player):
@@ -255,7 +255,7 @@ class RandomAgent(Player):
             reinforcement_allocation = [(selected_territory, total_reinforcements)]
 
         return reinforcement_allocation
-    
+
     def invade(self, adjacent_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
         max_troops_territory = max(self.personal_territories.values(), key=lambda t: t.troop_count)
 
@@ -276,7 +276,7 @@ class RandomAgent(Player):
         troops_to_use = max_troops_territory.troop_count - 1
 
         return max_troops_territory, min_troops_enemy_territory, troops_to_use
-    
+
 
     def manoeuvre(self, manoeuverable_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
         # Filter out territories that don't have enough troops to manoeuvre
@@ -298,8 +298,6 @@ class RandomAgent(Player):
         num_troops = random.randint(1, source_territory.troop_count - 1)
 
         return source_territory, destination_territory, num_troops
-    
-    
-    
+
     def get_player_name(self):
-        return(f"Random Agent {self.id}")
+        return (f"Random Agent {self.id}")
