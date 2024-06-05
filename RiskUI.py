@@ -7,7 +7,7 @@ import pygame
 import sys
 from typing import List, Dict, Tuple
 import random
-import math
+
 
 from Agent import RandomAgent, Player
 
@@ -155,6 +155,13 @@ class Territory():
         else:
             raise ArithmeticError()
         
+    def reset(self) -> None:
+        self.owner = None
+        self.troop_count = 0
+
+        return None
+
+        
     def attack(self, attacking_troops : int):
         
         if attacking_troops <= 0:
@@ -192,21 +199,33 @@ class Territory():
         return(continent_colour_dict[self.continent])
     
 class Game():
-    def __init__(self, players : List[Player], territories : Dict[Territory, int]):
+    def __init__(self, players : List[Player], territories : Dict[Territory, int], simulating : bool  = False):
         self.drawing = Drawing()
         random.shuffle(players) # random.shuffle shuffles in-place.
         self.turn_order = players
 
         self.card_deck = self.create_card_deck()
+        self.simulating = simulating
         self.territories = territories
-        self.start_turns(players)
+        self.stored_players = players
+        #self.start_turns(players)
 
     def create_card_deck(self):
         deck = [Card("Infantry")] * 14 + [Card("Cavalry")] * 14 + [Card("Artillery")] * 14 + [Card("Wild")] * 2
         random.shuffle(deck)
         return deck
+    
+    def reset_game(self):
+        for territory in self.territories.values():
+            territory.reset()
 
-    def start_turns(self, players: List[Player], max_turns: int = 10000) -> None:
+        for player in self.stored_players:
+            player.reset()
+
+    def play_game(self, players: List[Player] = None, max_turns: int = 200) -> int:
+        self.reset_game()
+        if players is None:
+            players = self.stored_players
         players = self.selection(players)
         players = self.add_infantry(players)
         running = True
@@ -218,39 +237,32 @@ class Game():
                 if player.personal_territories:
                     active_players.append(player)
                     self.main_section(player)
-                    time.sleep(0.3)
-            
+                    #time.sleep(0.3)
+        
             # Update the list of players with active players
             players = active_players
-            
+        
             # Check if there is only one player remaining or the maximum number of turns is reached
             if len(players) == 1 or turn_count >= max_turns:
                 running = False
-                
-                
+            
                 # Count the number of territories each player has
                 player_territory_count = {}
                 for player in players:
                     player_territory_count[player.id] = len(player.personal_territories)
-                
+            
                 # Find the player with the most territories
                 max_territories_player = max(player_territory_count, key=player_territory_count.get)
-                max_territories = player_territory_count[max_territories_player]
-                
-                # Print the player with the most territories
-                print(f"Player {max_territories_player} has the most territories with {max_territories} territories.")
-                
-                # Print the territory count for each player
-                print("Territory count for each player:")
-                for player_id, count in player_territory_count.items():
-                    print(f"Player {player_id}: {count} territories")
-                
                 
             
-            self.drawing.draw_map(self.territories)
+               
             
-            turn_count += 1
+                return max_territories_player
+            if not self.simulating:
+                self.drawing.draw_map(self.territories)
         
+            turn_count += 1
+    
         return None
 
     def selection(self, players : List[Player]) -> List[Player]: #I'm going to make this return the state of turns when it's done selection
@@ -599,7 +611,28 @@ for x in range(player_count):
 
 
 
-game = Game(players, territories)
+game = Game(players, territories, simulating= True)
+win_counts = {}
+for player in game.stored_players:
+    win_counts[player.id] = 0
+
+results = []
+for x in range(1, 20):
+    winner_id = game.play_game(game.stored_players, max_turns= 200)
+    
+    print(f"Game {x}")
+    if winner_id is not None:
+        win_counts[winner_id] += 1
+
+
+print("Win counts:")
+for player in players:
+    count = win_counts[player.id]
+    print(f"{player.get_player_name()}: {count} wins")
+
+    
+    
+
 
 pygame.quit()
 sys.exit()

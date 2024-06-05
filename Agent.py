@@ -84,9 +84,14 @@ class Player():
     def __init__(self, id : int, unassigned_units : int):
         self.id = id
         self.personal_territories = {}
-        
+        self.base_unassigned = unassigned_units
         self.unassigned_units = unassigned_units
         self.cards = []
+
+    def reset(self):
+        self.personal_territories = {}
+        self.cards = []
+        self.unassigned_units = self.base_unassigned
         
 
     def get_colour(self) -> tuple:
@@ -115,9 +120,6 @@ class Player():
     
     def give_player_units(self, number_of_units: int, ) -> None:
         if number_of_units > 0:
-            
-            
-            
             self.unassigned_units += number_of_units
             
         return None
@@ -162,15 +164,15 @@ class Player():
         # Trade in cards if possible
         card_sets = self.get_card_sets()
         if card_sets > 0:
-            reinforcement_count += card_sets * 10
-            #self.remove_card_sets(card_sets)
+            reinforcement_count += card_sets * 6
+            
 
         total_units = self.unassigned_units + sum(territory.troop_count for territory in self.personal_territories.values())
         
         
         if total_units + reinforcement_count >= unit_cap:
             reinforcement_count = 0
-        print(reinforcement_count)
+        #print(reinforcement_count)
         return reinforcement_count
 
     def remove_player_units(self, number_of_units : int) -> None:
@@ -191,24 +193,6 @@ class Player():
     def add_card(self, card):
         self.cards.append(card)
 
-    def trade_cards(self):
-        infantry_count = sum(1 for card in self.cards if card.type == "Infantry")
-        cavalry_count = sum(1 for card in self.cards if card.type == "Cavalry")
-        artillery_count = sum(1 for card in self.cards if card.type == "Artillery")
-        wild_count = sum(1 for card in self.cards if card.type == "Wild")
-        
-        sets = min(infantry_count, cavalry_count, artillery_count)
-        reinforcements = 0
-        
-        if sets > 0:
-            reinforcements += sets * 10
-            self.cards = [card for card in self.cards if card.type != "Infantry" or card.type != "Cavalry" or card.type != "Artillery"][:3 * sets]
-        
-        if wild_count >= 1:
-            reinforcements += wild_count * 5
-            self.cards = [card for card in self.cards if card.type != "Wild"][:wild_count]
-        
-        self.give_player_units(reinforcements, unit_cap= 130)
     
     #Abstract
     def get_player_name(self):
@@ -304,4 +288,4 @@ class RandomAgent(Player):
     
     
     def get_player_name(self):
-        return(f"Agent {self.id}")
+        return(f"Random Agent {self.id}")
