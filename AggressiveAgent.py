@@ -1,3 +1,4 @@
+from typing import List, Tuple
 from Agent import Player
 
 
@@ -11,7 +12,7 @@ class RandomAgent(Player):
     def reinforce(self) -> List[Tuple['Territory', int]]:
         pass
 
-     def invade(self, adjacent_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
+    def invade(self, adjacent_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
         pass
     def manoeuvre(self, manoeuverable_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
         pass
