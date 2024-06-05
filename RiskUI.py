@@ -20,66 +20,69 @@ class Continent(Enum):
     ASIA = 5,
     AUSTRALIA = 6
 
+
 class Stage(Enum):
     SELECTION = 1,
     PLACEMENT = 2,
 
+
 class Colour(Enum):
-    SEA = (0,255,255),
+    SEA = (0, 255, 255),
     WHITE = (255, 255, 255),
     BLACK = (0, 0, 0),
     RED = (200, 0, 0),
     BLUE = (0, 0, 255),
     GREEN = (0, 255, 0),
-    RUST = (210,150,75),
-    LIME = (180,255,100)
+    RUST = (210, 150, 75),
+    LIME = (180, 255, 100)
+
 
 ADJACENCY_LIST = {
-    
-    1: [43,3,5,4],
-    3: [14,6,5,1],
-    4: [43,1,5,7],
-    5: [1,3,6,7,8,4],
-    6: [3,5,8],
-    7: [8,5,4,9],
-    8: [5,6,7,9],
-    9: [7,8,10],
-    10: [9,11,12],
-    11: [10,12,13,21],
-    12: [10,11,13],
-    13: [11,12],
-    14: [3,15,16],
-    15: [14,16,17,20],
-    16: [14,15,17,18],
-    17: [16,15,20,19,18],
-    18: [16,17,19,21],
-    19: [17,18,20,21,22,35],
-    20: [15,17,19,27,31,35],
-    21: [18,19,22,23,24,11],
-    22: [19,21,35,23],
-    23: [21,22,35,24,25,26],
-    24: [21,23,25],
-    25: [24,23,26],
-    26: [23,25],
-    27: [20,31,37,28],
-    28: [27,37,33,32,29],
-    29: [28,32,30],
-    30: [29,32,34,43],
-    31: [27,37,36,35,20],
-    32: [29,30,34,33,28],
-    33: [28,32,34,37],
-    34: [33,32,30],
-    35: [31,36,22,23,19,20],
-    36: [35,38,37,31],
-    37: [38,36,33,31,27,28],
-    38: [37,36,39],
-    39: [40,41,38],
-    40: [39,41,42],
-    41: [39,42,40],
-    42: [41,40],
-    43: [30,1,4]
+    1: [43, 3, 5, 4],
+    3: [14, 6, 5, 1],
+    4: [43, 1, 5, 7],
+    5: [1, 3, 6, 7, 8, 4],
+    6: [3, 5, 8],
+    7: [8, 5, 4, 9],
+    8: [5, 6, 7, 9],
+    9: [7, 8, 10],
+    10: [9, 11, 12],
+    11: [10, 12, 13, 21],
+    12: [10, 11, 13],
+    13: [11, 12],
+    14: [3, 15, 16],
+    15: [14, 16, 17, 20],
+    16: [14, 15, 17, 18],
+    17: [16, 15, 20, 19, 18],
+    18: [16, 17, 19, 21],
+    19: [17, 18, 20, 21, 22, 35],
+    20: [15, 17, 19, 27, 31, 35],
+    21: [18, 19, 22, 23, 24, 11],
+    22: [19, 21, 35, 23],
+    23: [21, 22, 35, 24, 25, 26],
+    24: [21, 23, 25],
+    25: [24, 23, 26],
+    26: [23, 25],
+    27: [20, 31, 37, 28],
+    28: [27, 37, 33, 32, 29],
+    29: [28, 32, 30],
+    30: [29, 32, 34, 43],
+    31: [27, 37, 36, 35, 20],
+    32: [29, 30, 34, 33, 28],
+    33: [28, 32, 34, 37],
+    34: [33, 32, 30],
+    35: [31, 36, 22, 23, 19, 20],
+    36: [35, 38, 37, 31],
+    37: [38, 36, 33, 31, 27, 28],
+    38: [37, 36, 39],
+    39: [40, 41, 38],
+    40: [39, 41, 42],
+    41: [39, 42, 40],
+    42: [41, 40],
+    43: [30, 1, 4]
 }
-    
+
+
 class Region(Enum):
     NORTH_AMERICA = frozenset({1, 3, 4, 5, 6, 7, 8, 9, 43})
     SOUTH_AMERICA = frozenset({10, 11, 12, 13})
@@ -87,6 +90,7 @@ class Region(Enum):
     AFRICA = frozenset({21, 22, 23, 24, 25, 26})
     ASIA = frozenset({27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38})
     AUSTRALIA = frozenset({39, 40, 41, 42})
+
 
 REGION_BONUSES = {
     Region.NORTH_AMERICA: 5,
@@ -108,14 +112,8 @@ class Card:
         self.type = type
 
 
-
-
-
-    
-    
-
 class Territory():
-    def __init__(self, name : str, x_pos : int, y_pos : int, continent: Continent, id : int):
+    def __init__(self, name: str, x_pos: int, y_pos: int, continent: Continent, id: int):
         self.name = name
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -125,48 +123,45 @@ class Territory():
         self.id = id
 
     def get_position(self) -> tuple:
-        return( (self.x_pos,self.y_pos) )
-    
-    def get_owner(self) -> Player :
-        return(self.owner)
-    
-    def set_owner(self, owner : Player) -> None:
+        return ((self.x_pos, self.y_pos))
+
+    def get_owner(self) -> Player:
+        return (self.owner)
+
+    def set_owner(self, owner: Player) -> None:
         self.owner = owner
         return None
-    
+
     def get_troop_count(self) -> int:
-        return(self.troop_count)
-    
-    def set_troop_count(self, troop_count : int) -> None:
+        return (self.troop_count)
+
+    def set_troop_count(self, troop_count: int) -> None:
         self.troop_count = troop_count
         return None
-    
-    def increment_troop_count(self, troop_increment : int) -> None:
-        if troop_increment>0:
+
+    def increment_troop_count(self, troop_increment: int) -> None:
+        if troop_increment > 0:
             self.troop_count += troop_increment
             return None
         else:
             raise ArithmeticError()
 
-    def decrement_troop_count(self, troop_decrement : int) -> None:
-        if troop_decrement>0:
+    def decrement_troop_count(self, troop_decrement: int) -> None:
+        if troop_decrement > 0:
             self.troop_count -= troop_decrement
             return None
         else:
             raise ArithmeticError()
-        
+
     def reset(self) -> None:
         self.owner = None
         self.troop_count = 0
 
         return None
 
-        
-    def attack(self, attacking_troops : int):
-        
+    def attack(self, attacking_troops: int):
         if attacking_troops <= 0:
             raise ValueError("Attacking troops must be positive")
-        
         if self.troop_count <= 0:
             raise ValueError("Defending territory has no troops")
 
@@ -186,35 +181,36 @@ class Territory():
             return (True, attacking_troops)
         else:
             return (False, 0)
-    
+
     def get_outline_colour(self) -> tuple:
         continent_colour_dict = {
-            Continent.NORTH_AMERICA: (255,255,0), # Yellow
-            Continent.SOUTH_AMERICA: (255,100,10), # Orange
-            Continent.EUROPE: (0,0,100), # Blue 
-            Continent.AFRICA: (205,245,255), # White
-            Continent.ASIA: (0,255,0), # Green
-            Continent.AUSTRALIA: (240,0,255) # Purple
+            Continent.NORTH_AMERICA: (255, 255, 0),  # Yellow
+            Continent.SOUTH_AMERICA: (255, 100, 10),  # Orange
+            Continent.EUROPE: (0, 0, 100),  # Blue
+            Continent.AFRICA: (205, 245, 255),  # White
+            Continent.ASIA: (0, 255, 0),  # Green
+            Continent.AUSTRALIA: (240, 0, 255)  # Purple
         }
-        return(continent_colour_dict[self.continent])
-    
+        return (continent_colour_dict[self.continent])
+
+
 class Game():
     def __init__(self, players : List[Player], territories : Dict[Territory, int], simulating : bool  = False):
         self.drawing = Drawing()
-        random.shuffle(players) # random.shuffle shuffles in-place.
+        random.shuffle(players)  # random.shuffle shuffles in-place.
         self.turn_order = players
 
         self.card_deck = self.create_card_deck()
         self.simulating = simulating
         self.territories = territories
         self.stored_players = players
-        #self.start_turns(players)
+        # self.start_turns(players)
 
     def create_card_deck(self):
         deck = [Card("Infantry")] * 14 + [Card("Cavalry")] * 14 + [Card("Artillery")] * 14 + [Card("Wild")] * 2
         random.shuffle(deck)
         return deck
-    
+
     def reset_game(self):
         for territory in self.territories.values():
             territory.reset()
@@ -237,48 +233,43 @@ class Game():
                 if player.personal_territories:
                     active_players.append(player)
                     self.main_section(player)
-                    #time.sleep(0.3)
-        
+                    # time.sleep(0.1)
+
             # Update the list of players with active players
             players = active_players
-        
+
             # Check if there is only one player remaining or the maximum number of turns is reached
             if len(players) == 1 or turn_count >= max_turns:
                 running = False
-            
+
                 # Count the number of territories each player has
                 player_territory_count = {}
                 for player in players:
                     player_territory_count[player.id] = len(player.personal_territories)
-            
+
                 # Find the player with the most territories
                 max_territories_player = max(player_territory_count, key=player_territory_count.get)
-                
-            
-               
-            
+
                 return max_territories_player
             if not self.simulating:
                 self.drawing.draw_map(self.territories)
-        
+
             turn_count += 1
-    
+
         return None
 
-    def selection(self, players : List[Player]) -> List[Player]: #I'm going to make this return the state of turns when it's done selection
+    def selection(self, players: List[Player]) -> List[Player]:  # I'm going to make this return the state of turns when it's done selection
         for x in range(len(territories.items())):
             current_player = players.pop(0)
-            players.append(current_player) # Circular 
-
+            players.append(current_player)  # Circular 
 
             available_territories = self.get_available_territories()
             selected_territory = current_player.make_selection(available_territories)
             current_player.give_player_territory(selected_territory, 1)
             current_player.remove_player_units(1)
 
-
         return players
-    
+
     def get_available_territories(self) -> List[Territory]:
         available_territories = []
         for territory_id in territories:
@@ -286,32 +277,29 @@ class Game():
             if territory.get_owner() is None:
                 available_territories.append(territory)
 
-        return(available_territories)
-    
-    def add_infantry(self, players : List[Player]) -> List[Player]:
+        return (available_territories)
+
+    def add_infantry(self, players: List[Player]) -> List[Player]:
         iterations = players[0].unassigned_units * len(players)
         for x in range(iterations):
-            
+
             current_player = players.pop(0)
-            players.append(current_player) # Circular 
+            players.append(current_player)  # Circular 
 
             selected_territory = current_player.add_infantry()
             selected_territory.increment_troop_count(1)
             current_player.remove_player_units(1)
         return players
 
-
-
-    def main_section(self, player : Player) -> None:
+    def main_section(self, player: Player) -> None:
         self.reinforce(player)
         self.invade(player)
-        
+
         self.manoeuvre(player)
-        
 
     def reinforce(self, player: Player) -> None:
         reinforcement_count = player.calculate_reinforcement()
-        
+
         player.give_player_units(reinforcement_count)
         reinforcement_tuples = player.reinforce()
 
@@ -322,14 +310,13 @@ class Game():
         if total_reinforcements > reinforcement_count:
             raise ValueError("Reinforcement tuples exceed the allowed reinforcement count")
 
-
         for reinforcement_tuple in reinforcement_tuples:
-            if reinforcement_tuple[1]>0:
+            if reinforcement_tuple[1] > 0:
                 reinforcement_tuple[0].increment_troop_count(reinforcement_tuple[1])
             player.reset_player_units()
 
         return None
-        
+
     def invade(self, player: Player) -> None:
         invading = True
         while invading:
@@ -338,15 +325,14 @@ class Game():
                 invading = False
             else:
                 home_territory, target_territory, num_attacking_troops = invasion
-                
-                
+
                 # Check if the target territory is owned by the player
                 if target_territory.owner == player:
                     print(f"Cannot invade own territory: {target_territory.name}")
                     continue
-                
+
                 home_territory.decrement_troop_count(num_attacking_troops)
-                
+
                 success, num_remaining = target_territory.attack(num_attacking_troops)
                 if success:
                     target_territory.owner.remove_player_territory(target_territory)
@@ -358,13 +344,11 @@ class Game():
                         player.add_card(card)
                     else:
                         self.card_deck = self.create_card_deck()
-                    
+
                 else:
                     pass
 
-                
         return
-        
 
 
     def get_adjacent_territories(self, player: Player) -> List[Tuple[Territory, List[Territory]]]:
@@ -376,25 +360,23 @@ class Game():
                 adjacent_territory = self.territories[adjacent_id]
                 if adjacent_territory.owner != player:
                     adjacent_territories.append(adjacent_territory)
-            
+
             current_territory = self.territories[territory_id]
             adjacent_territory_tuples.append((current_territory, adjacent_territories))
-        
+
         return adjacent_territory_tuples
-    
+
     def manoeuvre(self, player: Player) -> None:
         manoveureable_territories = self.get_manoeuvreable_territories(player)
-        
+
         source_territory, destination_territory, num_troops = player.manoeuvre(manoveureable_territories)
         if source_territory is None:
-            return(None)
+            return (None)
         source_territory.decrement_troop_count(num_troops)
         destination_territory.increment_troop_count(num_troops)
-        
+
         return None
 
-        
-        
     def get_manoeuvreable_territories(self, player: Player) -> List[Tuple[Territory, List[Territory]]]:
         def bfs_reachable_territories(start_id: str, player_territories: set) -> List[Territory]:
             visited = set()
@@ -422,10 +404,6 @@ class Game():
 
         return manoeuvreable_territory_tuples
 
-    
-    
-    
-
 
 class Drawing():
 
@@ -436,7 +414,7 @@ class Drawing():
         pygame.display.set_caption("Risk Game UI")
 
 
-    def draw_map(self,territories):
+    def draw_map(self, territories):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -447,23 +425,21 @@ class Drawing():
         mouse_pos = pygame.mouse.get_pos()
         hovered_territory = self.get_hovered_territory(mouse_pos)
         if hovered_territory:
-           self.display_territory_info(hovered_territory, mouse_pos)
-
-        
+            self.display_territory_info(hovered_territory, mouse_pos)
 
         pygame.display.flip()
-    
+
     def draw_territories(self, territories : List[Territory]) -> None:
         for territory_id, territory in territories.items():
             position = territory.get_position()
             territory_size = 36
             pygame.draw.circle(self.window, territory.get_owner().get_colour() if territory.get_owner() else Colour.WHITE.value[0], position, territory_size)
             pygame.draw.circle(self.window, territory.get_outline_colour(), position, territory_size, 5)
-            
+
             # Render the text and get its rectangle
             text = self.font.render(territory.name, True, Colour.BLACK.value)
             text_rect = text.get_rect(center=position)
-            
+
             # Draw the text
             self.window.blit(text, text_rect)
 
@@ -476,10 +452,10 @@ class Drawing():
             y = (1-t)**2 * start_pos[1] + 2*(1-t)*t * control_pos[1] + t**2 * end_pos[1]
             points.append((int(x), int(y)))
         pygame.draw.lines(self.window, colour, False, points, width)
-        
+
         return None
-    
-    def draw_connections(self, territories : List[Territory]) -> None:
+
+    def draw_connections(self, territories: List[Territory]) -> None:
         for territory, neighbors in ADJACENCY_LIST.items():
             for neighbor in neighbors:
                 if (territory, neighbor) == (30, 43) or (territory, neighbor) == (43, 30):
@@ -494,7 +470,7 @@ class Drawing():
         self.draw_quadratic_bezier_curve(kamchatka_pos, alaska_pos, Colour.BLACK.value, 2, multiplier=y_height_multiplier)
 
         return None
-    
+
     def get_hovered_territory(self, mouse_pos):
         for territory in territories.values():
             position = territory.get_position()
@@ -503,38 +479,24 @@ class Drawing():
             if distance < territory_size:
                 return territory
         return None
-    
+
     def display_territory_info(self, territory, mouse_pos):
         info_text = f"Territory: {territory.name}\nOwner: {territory.get_owner().get_player_name() if territory.get_owner() else 'None'}\nTroop count: {territory.troop_count}"
         lines = info_text.split('\n')
-        
+
         # Calculate the width and height of the text box
         text_width = max(self.font.size(line)[0] for line in lines) + 20
         text_height = self.font.get_height() * len(lines) + 20
-        
+
         # Draw a white rectangle as the background for the text box
         pygame.draw.rect(self.window, Colour.WHITE.value[0], (mouse_pos[0] + 10, mouse_pos[1] + 10, text_width, text_height))
         pygame.draw.rect(self.window, Colour.BLACK.value[0], (mouse_pos[0] + 10, mouse_pos[1] + 10, text_width, text_height), 1)  # Border
-        
+
         y_offset = 0
         for line in lines:
             info_surface = self.font.render(line, True, Colour.BLACK.value[0])
             self.window.blit(info_surface, (mouse_pos[0] + 20, mouse_pos[1] + 20 + y_offset))
             y_offset += self.font.get_height()
-
-
-
-
-   
-
-
-
-
-
-
-
-
-
 
 
 
@@ -594,32 +556,28 @@ territories = {
 player_count = 3
 
 starting_infantry_dict = {
-    2 : 40,
-    3 : 35,
-    4 : 30,
-    5 : 25
+    2: 40,
+    3: 35,
+    4: 30,
+    5: 25
 }
-
 
 
 players = []
 
 for x in range(player_count):
-    players.append(RandomAgent(x,starting_infantry_dict[player_count]))
+    players.append(RandomAgent(x, starting_infantry_dict[player_count]))
 
 
-
-
-
-game = Game(players, territories, simulating= False)
+game = Game(players, territories, simulating=False)
 win_counts = {}
 for player in game.stored_players:
     win_counts[player.id] = 0
 
 results = []
 for x in range(1, 50):
-    winner_id = game.play_game(game.stored_players, max_turns= 300)
-    
+    winner_id = game.play_game(game.stored_players, max_turns=300)
+
     print(f"Game {x}")
     if winner_id is not None:
         win_counts[winner_id] += 1
@@ -629,9 +587,6 @@ print("Win counts:")
 for player in players:
     count = win_counts[player.id]
     print(f"{player.get_player_name()}: {count} wins")
-
-    
-    
 
 
 pygame.quit()

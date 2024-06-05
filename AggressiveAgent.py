@@ -6,6 +6,7 @@ class RandomAgent(Player):
 
     def make_selection(self, available_territories: List['Territory']) -> 'Territory':
         pass
+
     def add_infantry(self) -> 'Territory':
         pass
 
