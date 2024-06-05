@@ -86,11 +86,21 @@ class Player():
         self.personal_territories = {}
         self.base_unassigned = unassigned_units
         self.unassigned_units = unassigned_units
-        self.cards = []
+        self.cards = [0, 0, 0]
+        self.personal_territories_hash = ""
+        self.manoeuvreable_tiles = {}
+        self.adjacent_territories_cache = []
+        
+        self.card_value_dict = {
+                               0:5,
+                               1:6,
+                               2:7,
+                               3:10
+                               }
 
     def reset(self):
         self.personal_territories = {}
-        self.cards = []
+        self.cards = [0, 0, 0]
         self.unassigned_units = self.base_unassigned
         
 
@@ -124,56 +134,57 @@ class Player():
             
         return None
     
-    def get_card_sets(self) -> int:
-        infantry_count = sum(1 for card in self.cards if card.type == "Infantry")
-        cavalry_count = sum(1 for card in self.cards if card.type == "Cavalry")
-        artillery_count = sum(1 for card in self.cards if card.type == "Artillery")
-        wild_count = sum(1 for card in self.cards if card.type == "Wild")
+    def get_card_set(self) -> int:
+            
+        max_count = max(self.cards)
+        if max_count > 3:
+            return self.cards.index(max_count)
+        
+        if self.cards[0] > 0 and self.cards[1] > 0 and self.cards[0] > 0:
+            return 3    
+        return -1
+        
 
-        sets = min(infantry_count, cavalry_count, artillery_count)
-        sets += wild_count
-
-        return sets
-
-    def remove_card_sets(self, sets: int) -> None:
-        infantry_cards = [card for card in self.cards if card.type == "Infantry"]
-        cavalry_cards = [card for card in self.cards if card.type == "Cavalry"]
-        artillery_cards = [card for card in self.cards if card.type == "Artillery"]
-        wild_cards = [card for card in self.cards if card.type == "Wild"]
-
-        for _ in range(sets):
-            if infantry_cards:
-                self.cards.remove(infantry_cards.pop())
-            if cavalry_cards:
-                self.cards.remove(cavalry_cards.pop())
-            if artillery_cards:
-                self.cards.remove(artillery_cards.pop())
-            if wild_cards:
-                self.cards.remove(wild_cards.pop())
+    def remove_card_set(self, set: int) -> None:
+        if set == 1 or set == 2 or set == 3:
+            self.cards[set-1] -= 3
+        else:
+            for x in range(len(self.cards)):
+                self.cards[x] -= 1 
+        
 
     def calculate_reinforcement(self, unit_cap: int = 130) -> int:
         # Base reinforcement based on the number of territories
         reinforcement_count = max(3, math.floor(len(self.personal_territories) / 3))
-        
 
         # Add region bonuses if the player owns all territories in the region
-        for region, bonus in REGION_BONUSES.items():
-            if self.owns_all_territories_in_region(region):
-                reinforcement_count += bonus
+        owned_regions = {region for region in Region if self.owns_all_territories_in_region(region)}
+        reinforcement_count += sum(REGION_BONUSES[region] for region in owned_regions)
 
         # Trade in cards if possible
-        card_sets = self.get_card_sets()
-        if card_sets > 0:
-            reinforcement_count += card_sets * 6
+        card_set_num = self.get_card_set()
+        if card_set_num != -1:
             
+            card_value = self.card_value_dict[card_set_num]
+            reinforcement_count += card_value
+            self.remove_card_set(card_set_num)
 
         total_units = self.unassigned_units + sum(territory.troop_count for territory in self.personal_territories.values())
-        
-        
+
         if total_units + reinforcement_count >= unit_cap:
             reinforcement_count = 0
-        #print(reinforcement_count)
+
         return reinforcement_count
+    
+    def personal_territories_changed(self):
+        
+        if hash(frozenset(set(self.personal_territories))) != self.personal_territories_hash:
+            self.personal_territories_hash = hash(frozenset(set(self.personal_territories)))
+            return True
+        else:
+            
+            return False
+        
 
     def remove_player_units(self, number_of_units : int) -> None:
         if number_of_units > 0:
@@ -184,14 +195,15 @@ class Player():
         self.unassigned_units = 0
         
     def owns_all_territories_in_region(self, region):
-        region_territories = Region[region.name].value
-        return all(territory_id in self.personal_territories for territory_id in region_territories)
+        return region.value.issubset(self.personal_territories)
 
     
     
 
-    def add_card(self, card):
-        self.cards.append(card)
+    def add_card(self):
+        index = random.randint(0, len(self.cards) - 1)
+        self.cards[index] += 1
+        
 
     
     #Abstract
@@ -207,7 +219,7 @@ class Player():
         pass
 
     #Abstract
-    def reinforce(self) -> List[Tuple['Territory', int]]:
+    def reinforce(self, total_reinforcements : int ) -> List[Tuple['Territory', int]]:
         pass
 
     #Abstract
@@ -231,8 +243,8 @@ class RandomAgent(Player):
         territory = random.choice(list(self.personal_territories.values()))
         return territory
 
-    def reinforce(self) -> List[Tuple['Territory', int]]:
-        total_reinforcements = self.calculate_reinforcement()
+    def reinforce(self, total_reinforcements : int ) -> List[Tuple['Territory', int]]:
+       
         reinforcement_allocation = []
 
         if self.personal_territories:
