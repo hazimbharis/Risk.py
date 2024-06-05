@@ -10,14 +10,15 @@ import random
 
 
 from Agent import RandomAgent, Player
+from AggressiveAgent import AggressiveAgent
 
 
 class Continent(Enum):
-    NORTH_AMERICA = 1,
-    SOUTH_AMERICA = 2,
-    EUROPE = 3,
-    AFRICA = 4,
-    ASIA = 5,
+    NORTH_AMERICA = 1
+    SOUTH_AMERICA = 2
+    EUROPE = 3
+    AFRICA = 4
+    ASIA = 5
     AUSTRALIA = 6
 
 
@@ -255,6 +256,7 @@ class Game():
                 self.drawing.draw_map(self.territories)
 
             turn_count += 1
+            # input()
 
         return None
 
@@ -565,8 +567,9 @@ starting_infantry_dict = {
 
 players = []
 
-for x in range(player_count):
-    players.append(RandomAgent(x, starting_infantry_dict[player_count]))
+players.append(RandomAgent(0, starting_infantry_dict[player_count]))
+for x in range(1, player_count):
+    players.append(AggressiveAgent(x, starting_infantry_dict[player_count]))
 
 
 game = Game(players, territories, simulating=False)
@@ -575,7 +578,7 @@ for player in game.stored_players:
     win_counts[player.id] = 0
 
 results = []
-for x in range(1, 50):
+for x in range(1, 20):
     winner_id = game.play_game(game.stored_players, max_turns=300)
 
     print(f"Game {x}")
