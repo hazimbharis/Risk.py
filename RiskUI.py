@@ -10,6 +10,7 @@ import random
 
 
 from Agent import RandomAgent, Player
+from AggressiveAgent import AggressiveAgent
 
 
 class Continent(Enum):
@@ -34,50 +35,49 @@ class Colour(Enum):
     RUST = (210,150,75),
     LIME = (180,255,100)
 
-ADJACENCY_LIST = {
-    
-    1: [43,3,5,4],
-    3: [14,6,5,1],
-    4: [43,1,5,7],
-    5: [1,3,6,7,8,4],
-    6: [3,5,8],
-    7: [8,5,4,9],
-    8: [5,6,7,9],
-    9: [7,8,10],
-    10: [9,11,12],
-    11: [10,12,13,21],
-    12: [10,11,13],
-    13: [11,12],
-    14: [3,15,16],
-    15: [14,16,17,20],
-    16: [14,15,17,18],
-    17: [16,15,20,19,18],
-    18: [16,17,19,21],
-    19: [17,18,20,21,22,35],
-    20: [15,17,19,27,31,35],
-    21: [18,19,22,23,24,11],
-    22: [19,21,35,23],
-    23: [21,22,35,24,25,26],
-    24: [21,23,25],
-    25: [24,23,26],
-    26: [23,25],
-    27: [20,31,37,28],
-    28: [27,37,33,32,29],
-    29: [28,32,30],
-    30: [29,32,34,43],
-    31: [27,37,36,35,20],
-    32: [29,30,34,33,28],
-    33: [28,32,34,37],
-    34: [33,32,30],
-    35: [31,36,22,23,19,20],
-    36: [35,38,37,31],
-    37: [38,36,33,31,27,28],
-    38: [37,36,39],
-    39: [40,41,38],
-    40: [39,41,42],
-    41: [39,42,40],
-    42: [41,40],
-    43: [30,1,4]
+ADJACENCY_DICT = {
+    1: {43, 3, 5, 4},
+    3: {14, 6, 5, 1},
+    4: {43, 1, 5, 7},
+    5: {1, 3, 6, 7, 8, 4},
+    6: {3, 5, 8},
+    7: {8, 5, 4, 9},
+    8: {5, 6, 7, 9},
+    9: {7, 8, 10},
+    10: {9, 11, 12},
+    11: {10, 12, 13, 21},
+    12: {10, 11, 13},
+    13: {11, 12},
+    14: {3, 15, 16},
+    15: {14, 16, 17, 20},
+    16: {14, 15, 17, 18},
+    17: {16, 15, 20, 19, 18},
+    18: {16, 17, 19, 21},
+    19: {17, 18, 20, 21, 22, 35},
+    20: {15, 17, 19, 27, 31, 35},
+    21: {18, 19, 22, 23, 24, 11},
+    22: {19, 21, 35, 23},
+    23: {21, 22, 35, 24, 25, 26},
+    24: {21, 23, 25},
+    25: {24, 23, 26},
+    26: {23, 25},
+    27: {20, 31, 37, 28},
+    28: {27, 37, 33, 32, 29},
+    29: {28, 32, 30},
+    30: {29, 32, 34, 43},
+    31: {27, 37, 36, 35, 20},
+    32: {29, 30, 34, 33, 28},
+    33: {28, 32, 34, 37},
+    34: {33, 32, 30},
+    35: {31, 36, 22, 23, 19, 20},
+    36: {35, 38, 37, 31},
+    37: {38, 36, 33, 31, 27, 28},
+    38: {37, 36, 39},
+    39: {40, 41, 38},
+    40: {39, 41, 42},
+    41: {39, 42, 40},
+    42: {41, 40},
+    43: {30, 1, 4}
 }
     
 class Region(Enum):
@@ -103,10 +103,6 @@ y_height_multiplier = 1.5
 WIDTH, HEIGHT = 800*x_width_multiplier, 600*y_height_multiplier
 
 
-class Card:
-    def __init__(self, type):
-        self.type = type
-
 
 
 
@@ -123,6 +119,14 @@ class Territory():
         self.owner = None
         self.troop_count = 0
         self.id = id
+
+    # def get_adjacent(self) -> List['Territory']:
+    #     returned_territories = []
+    #     for territory_id in ADJACENCY_LIST[self.id]:
+    #         pass
+            
+
+
 
     def get_position(self) -> tuple:
         return( (self.x_pos,self.y_pos) )
@@ -197,23 +201,21 @@ class Territory():
             Continent.AUSTRALIA: (240,0,255) # Purple
         }
         return(continent_colour_dict[self.continent])
-    
+
+
 class Game():
     def __init__(self, players : List[Player], territories : Dict[Territory, int], simulating : bool  = False):
-        self.drawing = Drawing()
+        if not simulating:
+            self.drawing = Drawing()
         random.shuffle(players) # random.shuffle shuffles in-place.
         self.turn_order = players
 
-        self.card_deck = self.create_card_deck()
+        
         self.simulating = simulating
         self.territories = territories
         self.stored_players = players
         #self.start_turns(players)
 
-    def create_card_deck(self):
-        deck = [Card("Infantry")] * 14 + [Card("Cavalry")] * 14 + [Card("Artillery")] * 14 + [Card("Wild")] * 2
-        random.shuffle(deck)
-        return deck
     
     def reset_game(self):
         for territory in self.territories.values():
@@ -221,6 +223,7 @@ class Game():
 
         for player in self.stored_players:
             player.reset()
+        random.shuffle(self.stored_players)
 
     def play_game(self, players: List[Player] = None, max_turns: int = 200) -> int:
         self.reset_game()
@@ -237,7 +240,7 @@ class Game():
                 if player.personal_territories:
                     active_players.append(player)
                     self.main_section(player)
-                    #time.sleep(0.3)
+                    # time.sleep(0.4)
         
             # Update the list of players with active players
             players = active_players
@@ -304,21 +307,21 @@ class Game():
 
     def main_section(self, player : Player) -> None:
         self.reinforce(player)
-        self.invade(player)
-        
-        self.manoeuvre(player)
+
+        personal_territories_changed = player.personal_territories_changed()
+        self.invade(player, personal_territories_changed = personal_territories_changed)
+        self.manoeuvre(player, personal_territories_changed = personal_territories_changed)
         
 
     def reinforce(self, player: Player) -> None:
         reinforcement_count = player.calculate_reinforcement()
         
         player.give_player_units(reinforcement_count)
-        reinforcement_tuples = player.reinforce()
+        reinforcement_tuples = player.reinforce(reinforcement_count)
 
         # Verify that the total number of reinforcements does not exceed the allowed reinforcement count
         total_reinforcements = sum(t[1] for t in reinforcement_tuples)
-        card_sets = player.get_card_sets()
-        player.remove_card_sets(card_sets)
+        
         if total_reinforcements > reinforcement_count:
             raise ValueError("Reinforcement tuples exceed the allowed reinforcement count")
 
@@ -330,12 +333,15 @@ class Game():
 
         return None
         
-    def invade(self, player: Player) -> None:
+    def invade(self, player: Player, personal_territories_changed: bool = False) -> bool:
         invading = True
+        successfully_attacked = False
         while invading:
-            invasion = player.invade(self.get_adjacent_territories(player))
+            invasion = player.invade(self.get_enemy_adjacent_territories(player, changed = personal_territories_changed))
             if invasion is None:
                 invading = False
+                if successfully_attacked:
+                    player.add_card()
             else:
                 home_territory, target_territory, num_attacking_troops = invasion
                 
@@ -353,41 +359,56 @@ class Game():
                     player.give_player_territory(target_territory, num_remaining)
                     target_territory.set_owner(player)
                     target_territory.set_troop_count(num_remaining)
-                    if self.card_deck:
-                        card = self.card_deck.pop()
-                        player.add_card(card)
-                    else:
-                        self.card_deck = self.create_card_deck()
+                    successfully_attacked = True
+                    
+                        
+                    # player.add_card(card)
+                    
                     
                 else:
                     pass
 
                 
-        return
+        return successfully_attacked
         
 
 
-    def get_adjacent_territories(self, player: Player) -> List[Tuple[Territory, List[Territory]]]:
-        adjacent_territory_tuples = []
+    def get_enemy_adjacent_territories(self, player: Player, changed : bool = True) -> List[Tuple[Territory, List[Territory]]]:
 
-        for territory_id in player.personal_territories:
-            adjacent_territories = []
-            for adjacent_id in ADJACENCY_LIST.get(territory_id, []):
-                adjacent_territory = self.territories[adjacent_id]
-                if adjacent_territory.owner != player:
-                    adjacent_territories.append(adjacent_territory)
+        if changed:
+        
+            player_territory_ids = set(player.personal_territories)
+
+            adjacent_territory_tuples = []
+            for territory_id in player.personal_territories:
+                all_adjacent_ids = set(ADJACENCY_DICT.get(territory_id, set()))
+                non_player_adjacent_ids = all_adjacent_ids - player_territory_ids
+
+                adjacent_territories = [self.territories[adjacent_id] for adjacent_id in non_player_adjacent_ids]
+                current_territory = self.territories[territory_id]
+                adjacent_territory_tuples.append((current_territory, adjacent_territories))
+
+            # Cache the adjacent territories for the player
+            player.adjacent_territories_cache = adjacent_territory_tuples
             
-            current_territory = self.territories[territory_id]
-            adjacent_territory_tuples.append((current_territory, adjacent_territories))
-        
-        return adjacent_territory_tuples
+            return adjacent_territory_tuples
+        else:
+            return(player.adjacent_territories_cache)
     
-    def manoeuvre(self, player: Player) -> None:
-        manoveureable_territories = self.get_manoeuvreable_territories(player)
+    def manoeuvre(self, player: Player, personal_territories_changed: bool = True) -> None:
+        
+        manoveureable_territories = self.get_manoeuvreable_territories(player, changed = personal_territories_changed)
         
         source_territory, destination_territory, num_troops = player.manoeuvre(manoveureable_territories)
+        
         if source_territory is None:
-            return(None)
+            return None 
+        
+        if source_territory.get_troop_count()<num_troops:
+            if source_territory.get_troop_count()>1:
+                source_territory.decrement_troop_count(1) # Bad programming punishment.
+            return None
+        
         source_territory.decrement_troop_count(num_troops)
         destination_territory.increment_troop_count(num_troops)
         
@@ -395,33 +416,36 @@ class Game():
 
         
         
-    def get_manoeuvreable_territories(self, player: Player) -> List[Tuple[Territory, List[Territory]]]:
-        def bfs_reachable_territories(start_id: str, player_territories: set) -> List[Territory]:
-            visited = set()
-            queue = deque([start_id])
-            reachable_territories = []
+    def get_manoeuvreable_territories(self, player: Player, changed: bool = True) -> List[Tuple[Territory, List[Territory]]]:
+        if changed:
+            player_territories_set = set(player.personal_territories)
+            maneuverable_territories = []
 
-            while queue:
-                current_id = queue.popleft()
-                if current_id not in visited:
-                    visited.add(current_id)
-                    reachable_territories.append(self.territories[current_id])
-                    for adjacent_id in ADJACENCY_LIST.get(current_id, []):
-                        if adjacent_id in player_territories and adjacent_id not in visited:
-                            queue.append(adjacent_id)
+            def bfs(start_territory_id):
+                visited = set()
+                reachable_territories = []
+                queue = deque([start_territory_id])
 
-            return reachable_territories
+                while queue:
+                    current_id = queue.popleft()
+                    if current_id not in visited:
+                        visited.add(current_id)
+                        if current_id != start_territory_id:
+                            reachable_territories.append(self.territories[current_id])
+                        for adjacent_id in ADJACENCY_DICT.get(current_id, set()):
+                            if adjacent_id in player_territories_set and adjacent_id not in visited:
+                                queue.append(adjacent_id)
 
-        manoeuvreable_territory_tuples = []
-        player_territories_set = set(player.personal_territories)
+                return reachable_territories
 
-        for territory_id in player.personal_territories:
-            reachable_territories = bfs_reachable_territories(territory_id, player_territories_set)
-            reachable_territories.remove(self.territories[territory_id])  # Remove the start territory itself
-            manoeuvreable_territory_tuples.append((self.territories[territory_id], reachable_territories))
+            for territory_id in player.personal_territories:
+                reachable_territories = bfs(territory_id)
+                maneuverable_territories.append((self.territories[territory_id], reachable_territories))
 
-        return manoeuvreable_territory_tuples
-
+            player.manoeuvreable_tiles = maneuverable_territories
+            return maneuverable_territories
+        else:
+            return player.manoeuvreable_tiles
     
     
     
@@ -431,15 +455,22 @@ class Drawing():
 
     def __init__(self):
         pygame.init()
+        self.territories = []
         self.font = pygame.font.Font(None, 20)
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Risk Game UI")
 
 
     def draw_map(self,territories):
+        
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self.handle_mouse_click(mouse_pos, game)
+                clicked = True
+
+                
         self.window.fill(Colour.WHITE.value)
 
         self.draw_connections(territories)
@@ -448,7 +479,7 @@ class Drawing():
         hovered_territory = self.get_hovered_territory(mouse_pos)
         if hovered_territory:
            self.display_territory_info(hovered_territory, mouse_pos)
-
+        self.highlight_territories()
         
 
         pygame.display.flip()
@@ -479,20 +510,20 @@ class Drawing():
         
         return None
     
-    def draw_connections(self, territories : List[Territory]) -> None:
-        for territory, neighbors in ADJACENCY_LIST.items():
-            for neighbor in neighbors:
-                if (territory, neighbor) == (30, 43) or (territory, neighbor) == (43, 30):
+    def draw_connections(self, territories: List[Territory]) -> None:
+        for territory_id, neighbors in ADJACENCY_DICT.items():
+            for neighbor_id in neighbors:
+                if (territory_id, neighbor_id) == (30, 43) or (territory_id, neighbor_id) == (43, 30):
                     continue  # Skip the Kamchatka-Alaska connection for now
-                start_pos = territories[territory].get_position()
-                end_pos = territories[neighbor].get_position()
+                start_pos = territories[territory_id].get_position()
+                end_pos = territories[neighbor_id].get_position()
                 pygame.draw.line(self.window, Colour.BLACK.value, start_pos, end_pos, 2)
-
+        
         # Draw the curved connection between Kamchatka and Alaska
         kamchatka_pos = territories[30].get_position()
         alaska_pos = territories[43].get_position()
         self.draw_quadratic_bezier_curve(kamchatka_pos, alaska_pos, Colour.BLACK.value, 2, multiplier=y_height_multiplier)
-
+        
         return None
     
     def get_hovered_territory(self, mouse_pos):
@@ -521,6 +552,30 @@ class Drawing():
             info_surface = self.font.render(line, True, Colour.BLACK.value[0])
             self.window.blit(info_surface, (mouse_pos[0] + 20, mouse_pos[1] + 20 + y_offset))
             y_offset += self.font.get_height()
+
+    def handle_mouse_click(self, mouse_pos, game):
+        clicked_territory = self.get_hovered_territory(mouse_pos)
+        if clicked_territory:
+            player = clicked_territory.get_owner()
+            if player:
+                manoeuvreable_tiles = game.get_manoeuvreable_territories(player)
+               
+                for source_territory, dest_territories in manoeuvreable_tiles:
+                    print(clicked_territory.name)
+                    print(source_territory.name)
+                    if clicked_territory == source_territory:
+                       
+                        #self.highlight_territories(dest_territories)
+                        self.territories = dest_territories
+                        break
+
+    def highlight_territories(self):
+        #print("Highlighting territories:")
+        for territory in self.territories:
+            #print(territory.name)
+            position = territory.get_position()
+            territory_size = 40
+            pygame.draw.circle(self.window, Colour.LIME.value, position, territory_size, 5)
 
 
 
@@ -611,13 +666,13 @@ for x in range(player_count):
 
 
 
-game = Game(players, territories, simulating= False)
+game = Game(players, territories, simulating= True)
 win_counts = {}
 for player in game.stored_players:
     win_counts[player.id] = 0
 
 results = []
-for x in range(1, 50):
+for x in range(1, 10000):
     winner_id = game.play_game(game.stored_players, max_turns= 300)
     
     print(f"Game {x}")
@@ -633,6 +688,6 @@ for player in players:
     
     
 
-
-pygame.quit()
+if not game.simulating:
+    pygame.quit()
 sys.exit()
