@@ -1,3 +1,4 @@
+from collections import Counter
 from enum import Enum
 import math
 from typing import List, Tuple
@@ -14,6 +15,7 @@ class Colour(Enum):
     GREEN = (0, 255, 0),
     RUST = (210,150,75),
     LIME = (180,255,100)
+
 
 ADJACENCY_LIST = {
     
