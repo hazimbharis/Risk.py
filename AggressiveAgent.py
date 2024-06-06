@@ -1,10 +1,46 @@
 from typing import List, Tuple
+
+import numpy as np
 from Agent import Player
 import random
 from enum import Enum
 
 
+
+
+
 class AggressiveAgent(Player):
+
+    def __init__(self, id: int, unassigned_units: int):
+        self.positions_of_interest = {
+            39: 1, # Indonesia
+            9 : 1, # Central America
+            10 : 0.75, # Venezuala
+            3 : 0.75, # Greenland
+            11 : 0.75, # Brazil
+            21 : 0.75, # North Africa
+            23 : 0.5, # East Africa
+            22 : 0.5, # Egypt
+            43 : 0.5, # Alaska
+            38 : 0.25, # Siam
+            30 : 0.25, # Kamchatka
+        }
+        self.attack_heuristic_weightings = {
+            1: 1, # Point of interest
+            2: 1, # If the territory is able to attack and gain the entire continent.
+            3: 1, # If it places you below max troops
+            4: 1, # Gives increased reinforcements  ( increasing from 13 territories to 14)
+            5: 1, # If you're able to find a chain of attacks
+            6: 1, # If the territory attack is able to decrease the number of borders.
+            7: 1, # If the opponent is winning
+            8: 1, # Troop differential
+            9: 1, # If it exposes you to chaining
+            10: 7, # Heuristic threshold
+            
+            
+        }
+
+        super().__init__(id, unassigned_units)
 
     def make_selection(self, available_territories: List['Territory']) -> 'Territory':
         class Continent(Enum):
@@ -15,9 +51,9 @@ class AggressiveAgent(Player):
             ASIA = 5
             AUSTRALIA = 6
         choice = random.choice(available_territories)
-        print(choice.name)
-        print(choice.id)
-        print(choice.continent)
+        #print(choice.name)
+        #print(choice.id)
+        #print(choice.continent)
         # Get available territories in each continent
         # Initialize empty array to store territories
         continents = []
@@ -50,11 +86,11 @@ class AggressiveAgent(Player):
         if not self.personal_territories:
             return None
         territory = random.choice(list(self.personal_territories.values()))
-        print("Add infantry: " + territory.name)
+        #print("Add infantry: " + territory.name)
         return territory
 
-    def reinforce(self) -> List[Tuple['Territory', int]]:
-        total_reinforcements = self.calculate_reinforcement()
+    def reinforce(self, total_reinforcements : int) -> List[Tuple['Territory', int]]:
+        
         reinforcement_allocation = []
 
         if self.personal_territories:
@@ -65,6 +101,20 @@ class AggressiveAgent(Player):
         return reinforcement_allocation
 
     def invade(self, adjacent_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
+
+        #attacking_heuristics = self.generate_attacking_heuristic(adjacent_territories)
+        #valid_attacks = []
+        #for pair, heuristic in attacking_heuristics.items():
+            
+        #    if heuristic > self.attack_heuristic_weightings[10]:
+                # valid_attacks.append(pair)
+
+        #Not sure how to calculate the best number of units to send.
+            
+
+
+        
+
         max_troops_territory = max(self.personal_territories.values(), key=lambda t: t.troop_count)
 
         if max_troops_territory.troop_count <= 3:
@@ -84,6 +134,73 @@ class AggressiveAgent(Player):
         troops_to_use = max_troops_territory.troop_count - 1
 
         return max_troops_territory, min_troops_enemy_territory, troops_to_use
+    
+    def generate_attacking_heuristic(self, adjacent_territories):
+        # self.attack_heuristic_weightings = {
+        #     1: 1, # Point of interest
+        #     2: 1, # If the territory is able to attack and gain the entire continent.
+        #     3: 1, # If it places you below max troops
+        #     4: 1, # Gives increased reinforcements  ( increasing from 13 territories to 14)
+        #     5: 1, # If you're able to find a chain of attacks
+        #     6: 1, # If the territory attack is able to decrease the number of borders.
+        #     7: 1, # If the opponent is winning
+        #     8: 1, # Troop differential
+        #     9: 1, # If it exposes you to chaining
+        #     10: 7, # Heuristic threshold
+            
+            
+        # }
+        heuristic_values = {}
+        gets_below_max = self.gets_below_max_troops()
+        for source_territory, target_territory_list in adjacent_territories:
+            if source_territory.troop_count > 2:
+                for target_territory in target_territory_list:
+                    target_ids = np.array([target.id for target in target_territory_list])
+                    target_troop_counts = np.array([target.troop_count for target in target_territory_list])
+                    heuristic_value = np.zeros(len(target_territory_list))
+
+                    
+                    #Weighting 1 -> Point of interest
+
+                    #Weighting 2 -> Gaining continent
+                    gain_continent_mask, continent_values = np.array([self.can_gain_continent(source_territory, target) for target in target_territory_list]).T
+                    heuristic_value[gain_continent_mask] += continent_values[gain_continent_mask] * self.attack_heuristic_weightings[2]
+
+                    #Weighting 3 -> Going below max
+                    if gets_below_max:
+                        heuristic_value += self.attack_heuristic_weightings[3]
+
+                    #Weighting 4 -> Gives increased reinforcements
+
+                    #Weighting 5 -> If you can chain attacks
+
+                    #Weighting 6 -> If you're able to decrease border size
+
+                    #Weighting 7 -> If the enemy is winning
+
+                    #Weighting 8 -> Troop differential
+
+                    #Returning the heuristics
+
+                    for i, target_territory in enumerate(target_territory_list):
+                        heuristic_values[(source_territory, target_territory)] = heuristic_value[i]
+
+        return(heuristic_values)
+                    
+                   
+
+    def can_gain_continent(self, source_territory : 'Territory', target_territory : 'Territory') -> Tuple[bool,float]:
+        # Returns if it can conquer a continent on the turn and the value of the continent
+        return (False, 0)
+        
+
+    def gets_below_max_troops(self) -> bool:
+        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        return False
+        
+ 
+            
+
 
     def manoeuvre(self, manoeuverable_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
         # Filter out territories that don't have enough troops to manoeuvre
