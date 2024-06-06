@@ -1,8 +1,9 @@
 
 
-from collections import deque
+from collections import defaultdict, deque
 from enum import Enum
 import time
+import numpy as np
 import pygame
 import sys
 from typing import List, Dict, Tuple
@@ -38,51 +39,52 @@ class Colour(Enum):
     RUST = (210, 150, 75),
     LIME = (180, 255, 100)
 
-
-ADJACENCY_DICT = {
-    1: {43, 3, 5, 4},
-    3: {14, 6, 5, 1},
-    4: {43, 1, 5, 7},
-    5: {1, 3, 6, 7, 8, 4},
-    6: {3, 5, 8},
-    7: {8, 5, 4, 9},
-    8: {5, 6, 7, 9},
-    9: {7, 8, 10},
-    10: {9, 11, 12},
-    11: {10, 12, 13, 21},
-    12: {10, 11, 13},
-    13: {11, 12},
-    14: {3, 15, 16},
-    15: {14, 16, 17, 20},
-    16: {14, 15, 17, 18},
-    17: {16, 15, 20, 19, 18},
-    18: {16, 17, 19, 21},
-    19: {17, 18, 20, 21, 22, 35},
-    20: {15, 17, 19, 27, 31, 35},
-    21: {18, 19, 22, 23, 24, 11},
-    22: {19, 21, 35, 23},
-    23: {21, 22, 35, 24, 25, 26},
-    24: {21, 23, 25},
-    25: {24, 23, 26},
-    26: {23, 25},
-    27: {20, 31, 37, 28},
-    28: {27, 37, 33, 32, 29},
-    29: {28, 32, 30},
-    30: {29, 32, 34, 43},
-    31: {27, 37, 36, 35, 20},
-    32: {29, 30, 34, 33, 28},
-    33: {28, 32, 34, 37},
-    34: {33, 32, 30},
-    35: {31, 36, 22, 23, 19, 20},
-    36: {35, 38, 37, 31},
-    37: {38, 36, 33, 31, 27, 28},
-    38: {37, 36, 39},
-    39: {40, 41, 38},
-    40: {39, 41, 42},
-    41: {39, 42, 40},
-    42: {41, 40},
-    43: {30, 1, 4}
-}
+ADJACENCY_ARRAY = np.array([
+    [],  # Empty list for territory ID 0 (assuming territory IDs start from 1)
+    [43, 3, 5, 4],
+    [],  # Empty list for territory ID 2
+    [14, 6, 5, 1],
+    [43, 1, 5, 7],
+    [1, 3, 6, 7, 8, 4],
+    [3, 5, 8],
+    [8, 5, 4, 9],
+    [5, 6, 7, 9],
+    [7, 8, 10],
+    [9, 11, 12],
+    [10, 12, 13, 21],
+    [10, 11, 13],
+    [11, 12],
+    [3, 15, 16],
+    [14, 16, 17, 20],
+    [14, 15, 17, 18],
+    [16, 15, 20, 19, 18],
+    [16, 17, 19, 21],
+    [17, 18, 20, 21, 22, 35],
+    [15, 17, 19, 27, 31, 35],
+    [18, 19, 22, 23, 24, 11],
+    [19, 21, 35, 23],
+    [21, 22, 35, 24, 25, 26],
+    [21, 23, 25],
+    [24, 23, 26],
+    [23, 25],
+    [20, 31, 37, 28],
+    [27, 37, 33, 32, 29],
+    [28, 32, 30],
+    [29, 32, 34, 43],
+    [27, 37, 36, 35, 20],
+    [29, 30, 34, 33, 28],
+    [28, 32, 34, 37],
+    [33, 32, 30],
+    [31, 36, 22, 23, 19, 20],
+    [35, 38, 37, 31],
+    [38, 36, 33, 31, 27, 28],
+    [37, 36, 39],
+    [40, 41, 38],
+    [39, 41, 42],
+    [39, 42, 40],
+    [41, 40],
+    [30, 1, 4]
+], dtype=object)
 
 
 class Region(Enum):
@@ -125,6 +127,8 @@ class Territory():
         self.owner = None
         self.troop_count = 0
         self.id = id
+        self.reachable_territories = set()
+        
 
     # def get_adjacent(self) -> List['Territory']:
     #     returned_territories = []
@@ -207,7 +211,7 @@ class Territory():
 
 
 class Game():
-    def __init__(self, players : List[Player], territories : Dict[Territory, int], simulating : bool  = False):
+    def __init__(self, players : List[Player], territories : Dict[Territory, int], simulating : bool  = False, num_players = 3):
         if not simulating:
             self.drawing = Drawing()
         random.shuffle(players) # random.shuffle shuffles in-place.
@@ -217,6 +221,16 @@ class Game():
         self.simulating = simulating
         self.territories = territories
         self.stored_players = players
+        if players == []:
+            self.num_players = num_players
+        else:
+            self.num_players = len(players)
+
+        self.precomputed_adjacent_territories = {}
+        for territory_id, territory in self.territories.items():
+            adjacent_ids = ADJACENCY_ARRAY[territory_id]
+            adjacent_territories = [self.territories[adjacent_id] for adjacent_id in adjacent_ids]
+            self.precomputed_adjacent_territories[territory_id] = adjacent_territories
         # self.start_turns(players)
 
     
@@ -243,10 +257,14 @@ class Game():
                 if player.personal_territories:
                     active_players.append(player)
                     self.main_section(player)
-                    # time.sleep(0.4)
+                    if not self.simulating:
+                        time.sleep(0.1)
         
             # Update the list of players with active players
             players = active_players
+
+            # arr = [(x, 0) for x in range(0,len(ADJACENCY_ARRAY))]
+            # print(arr)
 
             # Check if there is only one player remaining or the maximum number of turns is reached
             if len(players) == 1 or turn_count >= max_turns:
@@ -258,9 +276,10 @@ class Game():
                     player_territory_count[player.id] = len(player.personal_territories)
 
                 # Find the player with the most territories
+                
                 max_territories_player = max(player_territory_count, key=player_territory_count.get)
-
-                return max_territories_player
+                fitnesses = self.get_fitness(max_territories_player)
+                return max_territories_player, fitnesses
             if not self.simulating:
                 self.drawing.draw_map(self.territories)
 
@@ -268,6 +287,20 @@ class Game():
             # input()
 
         return None
+    
+    def get_fitness(self, best_player : Player) -> List[int]:
+        fitness_scores = []
+        for player in self.stored_players:
+
+            no_territories = len(list(player.personal_territories))
+            no_troops_per_turn = player.base_reinforcement
+            win = 20 if player.id == best_player else 0
+            fitness_score = no_territories + no_troops_per_turn + win
+            fitness_scores.append(fitness_score)
+        return(fitness_scores)
+
+
+        
 
     def selection(self, players: List[Player]) -> List[Player]:  # I'm going to make this return the state of turns when it's done selection
         for x in range(len(territories.items())):
@@ -303,15 +336,14 @@ class Game():
         return players
 
     def main_section(self, player: Player) -> None:
-        self.reinforce(player)
-
         personal_territories_changed = player.personal_territories_changed()
+        self.reinforce(player, personal_territories_changed = personal_territories_changed)
         self.invade(player, personal_territories_changed = personal_territories_changed)
         self.manoeuvre(player, personal_territories_changed = personal_territories_changed)
         
 
-    def reinforce(self, player: Player) -> None:
-        reinforcement_count = player.calculate_reinforcement()
+    def reinforce(self, player: Player, personal_territories_changed : bool = False) -> None:
+        reinforcement_count = player.calculate_reinforcement(personal_territories_changed)
 
         player.give_player_units(reinforcement_count)
         reinforcement_tuples = player.reinforce(reinforcement_count)
@@ -339,8 +371,8 @@ class Game():
                 if successfully_attacked:
                     player.add_card()
             else:
-                home_territory, target_territory, num_attacking_troops = invasion
 
+                home_territory, target_territory, num_attacking_troops = invasion
                 # Check if the target territory is owned by the player
                 if target_territory.owner == player:
                     print(f"Cannot invade own territory: {target_territory.name}")
@@ -368,27 +400,19 @@ class Game():
         
 
 
-    def get_enemy_adjacent_territories(self, player: Player, changed : bool = True) -> List[Tuple[Territory, List[Territory]]]:
-
+    def get_enemy_adjacent_territories(self, player: Player,changed : bool) -> List[Tuple[Territory, List[Territory]]]:
         if changed:
-        
-            player_territory_ids = set(player.personal_territories)
+            player_territories_set = set(player.personal_territories)
+            enemy_adjacent_territories = []
 
-            adjacent_territory_tuples = []
             for territory_id in player.personal_territories:
-                all_adjacent_ids = set(ADJACENCY_DICT.get(territory_id, set()))
-                non_player_adjacent_ids = all_adjacent_ids - player_territory_ids
+                adjacent_territories = self.precomputed_adjacent_territories[territory_id]
+                adjacent_enemy_territories = [t for t in adjacent_territories if t.id not in player_territories_set]
+                enemy_adjacent_territories.append((self.territories[territory_id], adjacent_enemy_territories))
 
-                adjacent_territories = [self.territories[adjacent_id] for adjacent_id in non_player_adjacent_ids]
-                current_territory = self.territories[territory_id]
-                adjacent_territory_tuples.append((current_territory, adjacent_territories))
+            player.adjacent_territories_cache = enemy_adjacent_territories
 
-            # Cache the adjacent territories for the player
-            player.adjacent_territories_cache = adjacent_territory_tuples
-            
-            return adjacent_territory_tuples
-        else:
-            return(player.adjacent_territories_cache)
+        return player.adjacent_territories_cache
     
     def manoeuvre(self, player: Player, personal_territories_changed: bool = True) -> None:
         
@@ -408,33 +432,43 @@ class Game():
         destination_territory.increment_troop_count(num_troops)
 
         return None
-
-        
-        
+    
     def get_manoeuvreable_territories(self, player: Player, changed: bool = True) -> List[Tuple[Territory, List[Territory]]]:
         if changed:
             player_territories_set = set(player.personal_territories)
             maneuverable_territories = []
 
-            def bfs(start_territory_id):
-                visited = set()
-                reachable_territories = []
-                queue = deque([start_territory_id])
+            # Create an adjacency list representation of the graph
+            adjacency_list = defaultdict(list)
+            for territory_id in player_territories_set:
+                adjacent_ids = ADJACENCY_ARRAY[territory_id]
+                for adjacent_id in adjacent_ids:
+                    if adjacent_id in player_territories_set:
+                        adjacency_list[territory_id].append(adjacent_id)
 
-                while queue:
-                    current_id = queue.popleft()
-                    if current_id not in visited:
-                        visited.add(current_id)
-                        if current_id != start_territory_id:
-                            reachable_territories.append(self.territories[current_id])
-                        for adjacent_id in ADJACENCY_DICT.get(current_id, set()):
-                            if adjacent_id in player_territories_set and adjacent_id not in visited:
-                                queue.append(adjacent_id)
+            # Perform DFS to find connected components (islands)
+            visited = set()
+            island_map = {}
+            island_territories = defaultdict(set)
 
-                return reachable_territories
+            def dfs(territory_id, island_num):
+                visited.add(territory_id)
+                island_map[territory_id] = island_num
+                island_territories[island_num].add(territory_id)
+                for adjacent_id in adjacency_list[territory_id]:
+                    if adjacent_id not in visited:
+                        dfs(adjacent_id, island_num)
 
-            for territory_id in player.personal_territories:
-                reachable_territories = bfs(territory_id)
+            island_num = 0
+            for territory_id in player_territories_set:
+                if territory_id not in visited:
+                    island_num += 1
+                    dfs(territory_id, island_num)
+
+            # Create maneuverable territories using the island information
+            for territory_id in player_territories_set:
+                island_num = island_map[territory_id]
+                reachable_territories = [self.territories[t_id] for t_id in island_territories[island_num] if t_id != territory_id]
                 maneuverable_territories.append((self.territories[territory_id], reachable_territories))
 
             player.manoeuvreable_tiles = maneuverable_territories
@@ -442,9 +476,6 @@ class Game():
         else:
             return player.manoeuvreable_tiles
     
-    
-    
-
 
 class Drawing():
 
@@ -505,20 +536,20 @@ class Drawing():
 
         return None
     
-    def draw_connections(self, territories: List[Territory]) -> None:
-        for territory_id, neighbors in ADJACENCY_DICT.items():
-            for neighbor_id in neighbors:
+    def draw_connections(self, territories: Dict[int, Territory]) -> None:
+        for territory_id, territory in territories.items():
+            if territory_id == 0:
+                continue  # Skip territory ID 0 since it's not used
+            for neighbor_id in ADJACENCY_ARRAY[territory_id]:
                 if (territory_id, neighbor_id) == (30, 43) or (territory_id, neighbor_id) == (43, 30):
                     continue  # Skip the Kamchatka-Alaska connection for now
-                start_pos = territories[territory_id].get_position()
+                start_pos = territory.get_position()
                 end_pos = territories[neighbor_id].get_position()
                 pygame.draw.line(self.window, Colour.BLACK.value, start_pos, end_pos, 2)
-        
         # Draw the curved connection between Kamchatka and Alaska
         kamchatka_pos = territories[30].get_position()
         alaska_pos = territories[43].get_position()
         self.draw_quadratic_bezier_curve(kamchatka_pos, alaska_pos, Colour.BLACK.value, 2, multiplier=y_height_multiplier)
-        
         return None
 
     def get_hovered_territory(self, mouse_pos):
@@ -571,6 +602,85 @@ class Drawing():
             position = territory.get_position()
             territory_size = 40
             pygame.draw.circle(self.window, Colour.LIME.value, position, territory_size, 5)
+
+
+class GeneticAlgorithm():
+    
+        
+    def __init__(self, num_generations : int, population_size : int, game : Game) -> None:
+        self.num_generations = num_generations
+        self.population_size = population_size
+        self.game = game
+        
+        
+
+    def initialize_population(self):
+
+        #self.attack_heuristic_weightings = {
+        #     1: 1, # Point of interest
+        #     2: 1, # If the territory is able to attack and gain the entire continent.
+        #     3: 1, # If it places you below max troops
+        #     4: 1, # Gives increased reinforcements  ( increasing from 13 territories to 14)
+        #     5: 1, # If you're able to find a chain of attacks
+        #     6: 1, # If the territory attack is able to decrease the number of borders.
+        #     7: 1, # If the opponent is winning
+        #     8: 1, # Troop differential
+        #     9: 1, # If it exposes you to chaining
+        #     10: 7, # Heuristic threshold
+            
+            
+        # }
+        
+        population = []
+        for _ in range(self.population_size):
+            weightings  = [random.random() for _ in range(10)]
+            player = AggressiveAgent(0, starting_infantry_dict[self.game.num_players], weightings)  # Assuming RandomAgent is used for all players
+            population.append(player)
+        return population
+    
+    def evolve(self):
+        population = self.initialize_population()
+        for generation in range(self.num_generations):
+            print(f"Generation {generation + 1}")
+
+            fitness_scores = self.evaluate_fitness(self.game, population)
+            print(fitness_scores)
+
+
+
+
+    
+    def evaluate_fitness(self, game, population):
+        fitness_scores = []
+        start_time = time.time()
+        num_games = 10
+
+        for individual in population:
+            total_fitness = 0
+
+            for _ in range(num_games):
+                # Create a new list of players for each game
+                players = [individual]
+                
+                # Add random players to the game
+                for _ in range(game.num_players-1):
+                    random_player = random.choice(population)
+                    players.append(random_player)
+                game.stored_players = players
+
+                
+                
+
+                # Play the game and get the fitness score
+                winner_id, fitness = game.play_game(players, max_turns=200)
+                total_fitness += fitness[0]  # Assuming we only care about the first player's fitness
+
+            # Calculate the average fitness score over the 10 games
+            average_fitness = total_fitness / num_games
+            fitness_scores.append(average_fitness)
+        print(time.time()-start_time)
+        return fitness_scores
+    
 
 
 
@@ -654,21 +764,30 @@ starting_infantry_dict = {
 players = []
 
 players.append(RandomAgent(0, starting_infantry_dict[player_count]))
+
 for x in range(1, player_count):
-    players.append(AggressiveAgent(x, starting_infantry_dict[player_count]))
+    players.append(RandomAgent(x, starting_infantry_dict[player_count]))
 
 
 
 
 
-game = Game(players, territories, simulating= True)
+
+
+
+
+game = Game(players, territories,  simulating = True)
 win_counts = {}
 for player in game.stored_players:
     win_counts[player.id] = 0
 
+genetic_algo = GeneticAlgorithm(30, 30, game)
+genetic_algo.evolve()
+
 results = []
-for x in range(1, 10000):
-    winner_id = game.play_game(game.stored_players, max_turns= 300)
+
+for x in range(1, 2000):
+    winner_id, fitness = game.play_game(game.stored_players, max_turns= 200)
     
     print(f"Game {x}")
     if winner_id is not None:

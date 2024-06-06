@@ -16,50 +16,6 @@ class Colour(Enum):
     LIME = (180, 255, 100)
 
 
-ADJACENCY_LIST = {
-    1: [43, 3, 5, 4],
-    3: [14, 6, 5, 1],
-    4: [43, 1, 5, 7],
-    5: [1, 3, 6, 7, 8, 4],
-    6: [3, 5, 8],
-    7: [8, 5, 4, 9],
-    8: [5, 6, 7, 9],
-    9: [7, 8, 10],
-    10: [9, 11, 12],
-    11: [10, 12, 13, 21],
-    12: [10, 11, 13],
-    13: [11, 12],
-    14: [3, 15, 16],
-    15: [14, 16, 17, 20],
-    16: [14, 15, 17, 18],
-    17: [16, 15, 20, 19, 18],
-    18: [16, 17, 19, 21],
-    19: [17, 18, 20, 21, 22, 35],
-    20: [15, 17, 19, 27, 31, 35],
-    21: [18, 19, 22, 23, 24, 11],
-    22: [19, 21, 35, 23],
-    23: [21, 22, 35, 24, 25, 26],
-    24: [21, 23, 25],
-    25: [24, 23, 26],
-    26: [23, 25],
-    27: [20, 31, 37, 28],
-    28: [27, 37, 33, 32, 29],
-    29: [28, 32, 30],
-    30: [29, 32, 34, 43],
-    31: [27, 37, 36, 35, 20],
-    32: [29, 30, 34, 33, 28],
-    33: [28, 32, 34, 37],
-    34: [33, 32, 30],
-    35: [31, 36, 22, 23, 19, 20],
-    36: [35, 38, 37, 31],
-    37: [38, 36, 33, 31, 27, 28],
-    38: [37, 36, 39],
-    39: [40, 41, 38],
-    40: [39, 41, 42],
-    41: [39, 42, 40],
-    42: [41, 40],
-    43: [30, 1, 4]
-}
 
 
 class Region(Enum):
@@ -91,6 +47,7 @@ class Player():
         self.personal_territories_hash = ""
         self.manoeuvreable_tiles = {}
         self.adjacent_territories_cache = []
+        self.base_reinforcement = 3
         
         self.card_value_dict = {
                                0:5,
@@ -157,14 +114,20 @@ class Player():
                 self.cards[x] -= 1 
         
 
-    def calculate_reinforcement(self, unit_cap: int = 130) -> int:
+    def calculate_reinforcement(self, changed : bool ,  unit_cap: int = 130) -> int:
         # Base reinforcement based on the number of territories
-        reinforcement_count = max(3, math.floor(len(self.personal_territories) / 3))
 
-        # Add region bonuses if the player owns all territories in the region
-        owned_regions = {region for region in Region if self.owns_all_territories_in_region(region)}
-        reinforcement_count += sum(REGION_BONUSES[region] for region in owned_regions)
+        if changed:
+            reinforcement_count = max(3, math.floor(len(self.personal_territories) / 3))
 
+            # Add region bonuses if the player owns all territories in the region
+            owned_regions = {region for region in Region if self.owns_all_territories_in_region(region)}
+            reinforcement_count += sum(REGION_BONUSES[region] for region in owned_regions)
+            self.base_reinforcement = reinforcement_count
+        else:
+            reinforcement_count = self.base_reinforcement
+
+        
         # Trade in cards if possible
         card_set_num = self.get_card_set()
         if card_set_num != -1:

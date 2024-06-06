@@ -11,7 +11,7 @@ from enum import Enum
 
 class AggressiveAgent(Player):
 
-    def __init__(self, id: int, unassigned_units: int):
+    def __init__(self, id: int, unassigned_units: int, weightings : dict[int]):
         self.positions_of_interest = {
             39: 1, # Indonesia
             9 : 1, # Central America
@@ -25,20 +25,20 @@ class AggressiveAgent(Player):
             38 : 0.25, # Siam
             30 : 0.25, # Kamchatka
         }
-        self.attack_heuristic_weightings = {
-            1: 1, # Point of interest
-            2: 1, # If the territory is able to attack and gain the entire continent.
-            3: 1, # If it places you below max troops
-            4: 1, # Gives increased reinforcements  ( increasing from 13 territories to 14)
-            5: 1, # If you're able to find a chain of attacks
-            6: 1, # If the territory attack is able to decrease the number of borders.
-            7: 1, # If the opponent is winning
-            8: 1, # Troop differential
-            9: 1, # If it exposes you to chaining
-            10: 7, # Heuristic threshold
+        # self.attack_heuristic_weightings = {
+        #     1: 1, # Point of interest
+        #     2: 1, # If the territory is able to attack and gain the entire continent.
+        #     3: 1, # If it places you below max troops
+        #     4: 1, # Gives increased reinforcements  ( increasing from 13 territories to 14)
+        #     5: 1, # If you're able to find a chain of attacks
+        #     6: 1, # If the territory attack is able to decrease the number of borders.
+        #     7: 1, # If the opponent is winning
+        #     8: 1, # Troop differential
+        #     9: 1, # If it exposes you to chaining
+        #     10: 7, # Heuristic threshold
             
             
-        }
+        # }
 
         super().__init__(id, unassigned_units)
 
