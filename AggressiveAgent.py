@@ -102,7 +102,7 @@ class AggressiveAgent(Player):
 
     def invade(self, adjacent_territories: List[Tuple['Territory', List['Territory']]]) -> Tuple['Territory', 'Territory', int]:
 
-        #attacking_heuristics = self.generate_attacking_heuristic(adjacent_territories)
+        attacking_heuristics = self.generate_attacking_heuristic(adjacent_territories)
         #valid_attacks = []
         #for pair, heuristic in attacking_heuristics.items():
             
@@ -161,6 +161,8 @@ class AggressiveAgent(Player):
 
                     
                     #Weighting 1 -> Point of interest
+                    if target_territory.id in self.positions_of_interest:
+                        heuristic_value += self.positions_of_interest[target_territory.id] * self.attack_heuristic_weightings[1]
 
                     #Weighting 2 -> Gaining continent
                     gain_continent_mask, continent_values = np.array([self.can_gain_continent(source_territory, target) for target in target_territory_list]).T
@@ -171,6 +173,9 @@ class AggressiveAgent(Player):
                         heuristic_value += self.attack_heuristic_weightings[3]
 
                     #Weighting 4 -> Gives increased reinforcements
+                    current_amount = len(self.personal_territories)
+                    if (current_amount + 1 % 3 == 0 and current_amount > 9):
+                        heuristic_value += self.attack_heuristic_weightings[4]
 
                     #Weighting 5 -> If you can chain attacks
 
@@ -186,17 +191,40 @@ class AggressiveAgent(Player):
                         heuristic_values[(source_territory, target_territory)] = heuristic_value[i]
 
         return(heuristic_values)
-                    
-                   
 
+    
+    def is_point_of_interest(self) -> bool:
+        # Returns if targetted territority is a point of int
+        return False
+    
     def can_gain_continent(self, source_territory : 'Territory', target_territory : 'Territory') -> Tuple[bool,float]:
         # Returns if it can conquer a continent on the turn and the value of the continent
         return (False, 0)
-        
-
+    
     def gets_below_max_troops(self) -> bool:
         # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
         return False
+    
+    def gives_increased_reinforcements(self) -> bool:
+        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        return False
+        
+    def can_chain_attack(self) -> bool:
+        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        return False
+
+    def reduces_border_count(self) -> bool:
+        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        return False
+    
+    def attacks_winning_enemy(self) -> bool:
+        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        return False
+    
+    def difference_between_troops(self) -> float:
+        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        return 0
+
         
  
             
