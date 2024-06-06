@@ -7,6 +7,52 @@ from enum import Enum
 
 
 
+ADJACENCY_ARRAY = np.array([
+    [],  # Empty list for territory ID 0 (assuming territory IDs start from 1)
+    [43, 3, 5, 4],
+    [],  # Empty list for territory ID 2
+    [14, 6, 5, 1],
+    [43, 1, 5, 7],
+    [1, 3, 6, 7, 8, 4],
+    [3, 5, 8],
+    [8, 5, 4, 9],
+    [5, 6, 7, 9],
+    [7, 8, 10],
+    [9, 11, 12],
+    [10, 12, 13, 21],
+    [10, 11, 13],
+    [11, 12],
+    [3, 15, 16],
+    [14, 16, 17, 20],
+    [14, 15, 17, 18],
+    [16, 15, 20, 19, 18],
+    [16, 17, 19, 21],
+    [17, 18, 20, 21, 22, 35],
+    [15, 17, 19, 27, 31, 35],
+    [18, 19, 22, 23, 24, 11],
+    [19, 21, 35, 23],
+    [21, 22, 35, 24, 25, 26],
+    [21, 23, 25],
+    [24, 23, 26],
+    [23, 25],
+    [20, 31, 37, 28],
+    [27, 37, 33, 32, 29],
+    [28, 32, 30],
+    [29, 32, 34, 43],
+    [27, 37, 36, 35, 20],
+    [29, 30, 34, 33, 28],
+    [28, 32, 34, 37],
+    [33, 32, 30],
+    [31, 36, 22, 23, 19, 20],
+    [35, 38, 37, 31],
+    [38, 36, 33, 31, 27, 28],
+    [37, 36, 39],
+    [40, 41, 38],
+    [39, 41, 42],
+    [39, 42, 40],
+    [41, 40],
+    [30, 1, 4]
+], dtype=object)
 
 
 class AggressiveAgent(Player):
@@ -25,20 +71,20 @@ class AggressiveAgent(Player):
             38 : 0.25, # Siam
             30 : 0.25, # Kamchatka
         }
-        # self.attack_heuristic_weightings = {
-        #     1: 1, # Point of interest
-        #     2: 1, # If the territory is able to attack and gain the entire continent.
-        #     3: 1, # If it places you below max troops
-        #     4: 1, # Gives increased reinforcements  ( increasing from 13 territories to 14)
-        #     5: 1, # If you're able to find a chain of attacks
-        #     6: 1, # If the territory attack is able to decrease the number of borders.
-        #     7: 1, # If the opponent is winning
-        #     8: 1, # Troop differential
-        #     9: 1, # If it exposes you to chaining
-        #     10: 7, # Heuristic threshold
+        self.attack_heuristic_weightings = {
+            1: 1, # Point of interest
+            2: 1, # If the territory is able to attack and gain the entire continent.
+            3: 1, # If it places you below max troops
+            4: 1, # Gives increased reinforcements  ( increasing from 13 territories to 14)
+            5: 1, # If you're able to find a chain of attacks
+            6: 1, # If the territory attack is able to decrease the number of borders.
+            7: 1, # If the opponent is winning
+            8: 1, # Troop differential
+            9: 1, # If it exposes you to chaining
+            10: 7, # Heuristic threshold
             
             
-        # }
+        }
 
         super().__init__(id, unassigned_units)
 
@@ -178,23 +224,40 @@ class AggressiveAgent(Player):
                         heuristic_value += self.attack_heuristic_weightings[4]
 
                     #Weighting 5 -> If you can chain attacks
-
+                    chained_territories = ADJACENCY_ARRAY[target_territory.id]
+                    for t in chained_territories:
+                        if t not in self.personal_territories:
+                            heuristic_value += self.attack_heuristic_weightings[5]
+                
                     #Weighting 6 -> If you're able to decrease border size
+                    current_borders = ADJACENCY_ARRAY[source_territory.id]
+                    next_borders = ADJACENCY_ARRAY[target_territory.id]
+                    if len(next_borders) < len(current_borders):
+                        heuristic_value += self.attack_heuristic_weightings[6]
 
                     #Weighting 7 -> If the enemy is winning
+                    enemy_territories = len(target_territory.owner.personal_territories)
+                    if (len(self.personal_territories) < enemy_territories):
+                        heuristic_value += self.attack_heuristic_weightings[7]
+                    
 
                     #Weighting 8 -> Troop differential
+                    current_troops = source_territory.troop_count
+                    enemy_troops = target_territory.troop_count
+                    heuristic_value += (current_troops - enemy_troops) * self.attack_heuristic_weightings[8]
 
                     #Returning the heuristics
 
                     for i, target_territory in enumerate(target_territory_list):
                         heuristic_values[(source_territory, target_territory)] = heuristic_value[i]
-
+                        
+        for  heuristic_value in heuristic_values.values():
+            print(heuristic_value)
         return(heuristic_values)
 
     
     def is_point_of_interest(self) -> bool:
-        # Returns if targetted territority is a point of int
+        # Returns if targetted territority is a point of interest and the respective weighting
         return False
     
     def can_gain_continent(self, source_territory : 'Territory', target_territory : 'Territory') -> Tuple[bool,float]:
@@ -206,23 +269,23 @@ class AggressiveAgent(Player):
         return False
     
     def gives_increased_reinforcements(self) -> bool:
-        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        # Returns if taking this territory will give us increased reinforcements next round
         return False
         
     def can_chain_attack(self) -> bool:
-        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        # Returns if attacking this territory will allow us to attack another adjacent territory
         return False
 
-    def reduces_border_count(self) -> bool:
-        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+    def reduces_border_count(self) -> Tuple[bool, float]:
+        # Returns if taking this territory will reduce the number of outside borders all our terrorities have
         return False
     
     def attacks_winning_enemy(self) -> bool:
-        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        # Returns if an attack is attacking a territory belonging to the winning team
         return False
     
     def difference_between_troops(self) -> float:
-        # Returns if an attack will take us below the max unassigned values (i.e attack if we're full)
+        # Returns the difference between your attacking troops and defending troops of territory being targetted
         return 0
 
         
